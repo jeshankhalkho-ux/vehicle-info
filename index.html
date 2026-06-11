@@ -8,9 +8,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.21.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
-  <script src="lib/ultraplate.js"></script>
+  <script src="https://unpkg.com/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Inter',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
@@ -198,8 +197,76 @@
     .login-brand{font-size:22px;font-weight:800;}
     .login-brand span{color:#6366f1;}
     .login-sub{text-align:center;font-size:14px;color:#64748b;margin-bottom:28px;line-height:1.5;}
+    .field-lbl{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:block;}
+    .login-field{display:flex;align-items:center;gap:10px;border-radius:12px;padding:0 14px;height:50px;transition:all .2s;margin-bottom:10px;}
+    .login-field:focus-within{border-color:#6366f1!important;box-shadow:0 0 0 3px rgba(99,102,241,0.12);}
+    .login-field.eb{border-color:#ef4444!important;}
+    .login-field input{flex:1;background:none;border:none;outline:none;font-size:15px;font-family:'Inter',sans-serif;}
+    .login-field input::placeholder{color:#94a3b8;}
+    .pw-tog{background:none;border:none;cursor:pointer;display:flex;padding:2px;color:#94a3b8;}
+    .err-msg{font-size:12px;color:#ef4444;margin-bottom:12px;display:flex;align-items:center;gap:5px;}
     .login-btn{width:100%;height:50px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:15px;box-shadow:0 4px 16px rgba(99,102,241,0.3);transition:all .2s;}
     .login-btn:hover{transform:translateY(-1px);}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}60%{transform:translateX(8px)}}
+    .shake{animation:shake .4s ease;}
+
+    /* Camera modal */
+    .cam-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .cam-header{position:absolute;top:0;left:0;right:0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+    .cam-title{font-size:16px;font-weight:700;color:#fff;}
+    .cam-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+    .cam-body{width:100%;max-width:420px;padding:0 20px;}
+    .cam-view{width:100%;aspect-ratio:4/3;border-radius:16px;overflow:hidden;position:relative;background:#111;border:2px solid #6366f1;}
+    .cam-view video{width:100%;height:100%;object-fit:cover;}
+    .cam-view canvas{display:none;}
+    .cam-guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+    .cam-frame{width:85%;height:22%;border:3px solid #6366f1;border-radius:8px;box-shadow:0 0 0 2000px rgba(0,0,0,0.4);position:relative;}
+    .cam-frame::before,.cam-frame::after{content:'';position:absolute;width:20px;height:20px;border-color:#fff;border-style:solid;}
+    .cam-frame::before{top:-3px;left:-3px;border-width:3px 0 0 3px;border-radius:4px 0 0 4px;}
+    .cam-frame::after{bottom:-3px;right:-3px;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+    .cam-hint{text-align:center;margin-top:14px;font-size:13px;color:rgba(255,255,255,0.6);line-height:1.5;}
+    .cam-actions{display:flex;gap:12px;margin-top:20px;width:100%;max-width:420px;padding:0 20px;}
+    .cam-snap{flex:1;height:56px;border-radius:14px;border:none;cursor:pointer;background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 20px rgba(99,102,241,0.4);}
+    .cam-snap:disabled{opacity:0.5;cursor:not-allowed;}
+    .cam-result{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px 16px;margin-top:14px;width:100%;max-width:420px;padding-left:20px;padding-right:20px;}
+    .cam-result-lbl{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;}
+    .cam-result-num{font-size:22px;font-weight:800;color:#fff;letter-spacing:3px;font-family:'Inter',monospace;}
+    .cam-use{background:linear-gradient(135deg,#6366f1,#818cf8);border:none;border-radius:10px;padding:10px 20px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .cam-btn{width:38px;height:38px;border-radius:50%;background:rgba(99,102,241,0.15);border:1.5px solid rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
+    .cam-btn:hover{background:rgba(99,102,241,0.25);}
+    .ocr-loading{text-align:center;padding:16px;color:rgba(255,255,255,0.6);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .ocr-spinner{width:28px;height:28px;border:3px solid rgba(99,102,241,0.3);border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;}
+
+    /* ── Camera Scanner ── */
+    .cam-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .cam-header{position:absolute;top:0;left:0;right:0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+    .cam-title{color:#fff;font-size:17px;font-weight:700;}
+    .cam-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;}
+    .cam-video{width:100%;max-width:400px;border-radius:16px;overflow:hidden;position:relative;}
+    .cam-video video{width:100%;display:block;border-radius:16px;}
+    .cam-frame{position:absolute;inset:0;pointer-events:none;}
+    .cam-frame::before,.cam-frame::after{content:'';position:absolute;width:60px;height:60px;border-color:#6366f1;border-style:solid;}
+    .cam-frame::before{top:16px;left:16px;border-width:3px 0 0 3px;border-radius:4px 0 0 0;}
+    .cam-frame::after{bottom:16px;right:16px;border-width:0 3px 3px 0;border-radius:0 0 4px 0;}
+    .cam-guide{position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);border:2px dashed rgba(99,102,241,0.6);border-radius:8px;height:60px;display:flex;align-items:center;justify-content:center;}
+    .cam-guide span{color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;}
+    .cam-actions{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:400px;padding:0 20px;}
+    .cam-capture{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);border:4px solid rgba(255,255,255,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px rgba(99,102,241,0.2);transition:all .2s;}
+    .cam-capture:hover{transform:scale(1.05);}
+    .cam-capture:disabled{opacity:0.5;cursor:not-allowed;}
+    .cam-hint{color:rgba(255,255,255,0.4);font-size:12px;text-align:center;}
+    .cam-result{background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px 16px;width:100%;display:flex;align-items:center;gap:12px;}
+    .cam-result-num{font-family:'Inter',monospace;font-size:18px;font-weight:800;color:#a5b4fc;letter-spacing:2px;flex:1;}
+    .cam-use-btn{background:#6366f1;border:none;color:#fff;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+    .cam-scanning{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;}
+    .cam-scan-ring{width:50px;height:50px;border:3px solid rgba(99,102,241,0.2);border-top-color:#6366f1;border-radius:50%;animation:spin 1s linear infinite;}
+    .cam-scan-txt{color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;letter-spacing:1px;}
+    .scan-btn{background:none;border:1.5px solid #e2e8f0;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
+    .scan-btn:hover{border-color:#6366f1;background:#eef2ff;}
+    body.dark .scan-btn{border-color:#21262d;background:#1c2128;}
+    body.dark .scan-btn:hover{border-color:#6366f1;}
+    @keyframes scanline{0%{top:10%}100%{top:85%}}
+    .scan-line{position:absolute;left:16px;right:16px;height:2px;background:linear-gradient(90deg,transparent,#6366f1,transparent);animation:scanline 2s ease-in-out infinite;border-radius:1px;}
   </style>
 </head>
 <body>
@@ -207,6 +274,7 @@
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useCallback } = React;
 
+const SECRET = "Jishan15";
 const WORKER = "https://vehicle-info.jeshankhalkho.workers.dev";
 const EXAMPLES = [
   { num: "JH05DS6144", desc: "Try an example SUV", icon: "🚙" },
@@ -268,7 +336,7 @@ function normalize(raw, regNo) {
 async function fetchVehicle(number) {
   let res, json;
   try {
-    res = await fetch(`${WORKER}/?number=${encodeURIComponent(number)}`, {
+    res = await fetch(`${WORKER}/api/vehicle?rcno=${encodeURIComponent(number)}`, {
       signal: AbortSignal.timeout(25000)
     });
     json = await res.json();
@@ -294,7 +362,6 @@ const P = {
   alert:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z",
   lock:"M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z",
   back:"M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
-  camera:"M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 2c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.14-7-7 3.14-7 7-7zm0-2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 18c4.42 0 8-3.58 8-8s-3.58-8-8-8-8 3.58-8 8 3.58 8 8 8z",
   logout:"M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z",
   eye:"M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z",
   eyeoff:"M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27z",
@@ -302,6 +369,8 @@ const P = {
   tag:"M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42z",
   info:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
   close:"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+  camera:"M12 15.2c-1.77 0-3.2-1.43-3.2-3.2S10.23 8.8 12 8.8s3.2 1.43 3.2 3.2-1.43 3.2-3.2 3.2zm8-10.2h-2.4l-1.5-2H9.9L8.4 5H6C4.9 5 4 5.9 4 7v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2z",
+  scan:"M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-6 8h1.5v1.5H13V13zm1.5 1.5H16V16h-1.5v-1.5zM16 13h1.5v1.5H16V13zm-3 3h1.5v1.5H13V16zm1.5 1.5H16V19h-1.5v-1.5zM16 16h1.5v1.5H16V16zm1.5-1.5H19V16h-1.5v-1.5zM19 13h-1.5v1.5L19 14.5V13z",
   history:"M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
 };
 const Ico = ({n,s=18,c="currentColor"}) => (
@@ -324,9 +393,15 @@ const IR = ({label,value,icon,hl,vc}) => (
 const ST = ({t}) => <div className="info-sec-title">{t}</div>;
 
 function Login({onLogin}) {
+  const [k,setK]=useState(""); const [sh,setSh]=useState(false);
+  const [e,setE]=useState(""); const [sk,setSk]=useState(false);
+  const go = () => {
+    if(k===SECRET){onLogin();}
+    else{setE("Invalid access key.");setSk(true);setTimeout(()=>setSk(false),500);}
+  };
   return (
     <div className="login-page">
-      <div className="login-box">
+      <div className={`login-box${sk?' shake':''}`}>
         <div className="login-logo-row">
           <div className="login-icon"><Ico n="car" s={26} c="white"/></div>
           <div>
@@ -334,8 +409,19 @@ function Login({onLogin}) {
             <div style={{fontSize:10,color:'#94a3b8',letterSpacing:1}}>NATIONAL REGISTRY DATA</div>
           </div>
         </div>
-        <div className="login-sub">Access the national vehicle registry database.</div>
-        <button className="login-btn" onClick={onLogin}>Access Portal</button>
+        <div className="login-sub">Enter your access key to query the national vehicle registry database.</div>
+        <label className="field-lbl">Access Key</label>
+        <div className={`login-field${e?' eb':''}`}>
+          <Ico n="lock" s={17} c="#94a3b8"/>
+          <input type={sh?"text":"password"} placeholder="Enter access key..."
+            value={k} onChange={ev=>{setK(ev.target.value);setE("");}}
+            onKeyDown={ev=>ev.key==="Enter"&&go()} autoComplete="off"/>
+          <button className="pw-tog" onClick={()=>setSh(v=>!v)}>
+            <Ico n={sh?"eyeoff":"eye"} s={17} c="#94a3b8"/>
+          </button>
+        </div>
+        {e&&<div className="err-msg"><Ico n="alert" s={13} c="#ef4444"/>{e}</div>}
+        <button className="login-btn" onClick={go}>Access Portal</button>
       </div>
     </div>
   );
@@ -428,8 +514,261 @@ function Result({d,onBack}) {
   );
 }
 
+// ── Camera Scanner Component ──────────────────────────────────────────────────
+function CameraScanner({ onDetected, onClose }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [scanning, setScanning] = useState(false);
+  const [detected, setDetected] = useState(null);
+  const [camErr, setCamErr] = useState(null);
+  const [status, setStatus] = useState("Point camera at number plate");
+  const [manualMode, setManualMode] = useState(false);
+  const [manualText, setManualText] = useState("");
+
+  // Extract Indian plate from raw OCR text
+  function extractPlate(text) {
+    const clean = text.toUpperCase().replace(/[^A-Z0-9\s]/g, ' ').replace(/\s+/g, '');
+    // Try strict pattern first
+    let m = clean.match(/[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}/);
+    if (m) return m[0];
+    // Loose pattern - allow O/0, I/1 confusion
+    const loose = clean.replace(/O/g,'0').replace(/I/g,'1').replace(/S/g,'5').replace(/B/g,'8');
+    m = loose.match(/[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}/);
+    if (m) return m[0];
+    return null;
+  }
+
+  // Preprocess canvas for OCR - multiple strategies
+  function preprocessCanvas(srcCanvas, mode) {
+    const c = document.createElement('canvas');
+    // Scale up 2x for better OCR accuracy
+    c.width = srcCanvas.width * 2;
+    c.height = srcCanvas.height * 2;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(srcCanvas, 0, 0, c.width, c.height);
+
+    if (mode === 'raw') return c;
+
+    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+    const d = imgData.data;
+
+    if (mode === 'gray') {
+      for (let i = 0; i < d.length; i += 4) {
+        const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        d[i] = d[i+1] = d[i+2] = g;
+      }
+    } else if (mode === 'high_contrast') {
+      for (let i = 0; i < d.length; i += 4) {
+        const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        // Adaptive: enhance contrast
+        const v = g < 100 ? 0 : g > 160 ? 255 : ((g - 100) / 60) * 255;
+        d[i] = d[i+1] = d[i+2] = v;
+      }
+    } else if (mode === 'invert') {
+      for (let i = 0; i < d.length; i += 4) {
+        const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+        d[i] = d[i+1] = d[i+2] = 255 - g;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    return c;
+  }
+
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1920 }, height: { ideal: 1080 },
+        focusMode: { ideal: 'continuous' }
+      }
+    }).then(stream => {
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    }).catch(() => {
+      setCamErr("Camera access denied. Please allow camera permission.");
+    });
+    return () => { if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop()); };
+  }, []);
+
+  const capture = async () => {
+    if (!videoRef.current || scanning) return;
+    setScanning(true);
+    setDetected(null);
+    setStatus("Capturing image...");
+
+    // Capture full frame
+    const video = videoRef.current;
+    const full = document.createElement('canvas');
+    full.width = video.videoWidth || 1280;
+    full.height = video.videoHeight || 720;
+    full.getContext('2d').drawImage(video, 0, 0);
+
+    // Try OCR with 4 different preprocessing modes
+    const modes = ['raw', 'gray', 'high_contrast', 'invert'];
+    let found = null;
+
+    for (let i = 0; i < modes.length && !found; i++) {
+      const mode = modes[i];
+      setStatus(`Analyzing image (attempt ${i+1}/4)...`);
+      try {
+        const processed = preprocessCanvas(full, mode);
+        const result = await Tesseract.recognize(processed, 'eng', {
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+          tessedit_pageseg_mode: '6',
+          preserve_interword_spaces: '0',
+        });
+        const plate = extractPlate(result.data.text);
+        if (plate) { found = plate; break; }
+
+        // Also try PSM 11 (sparse text)
+        const result2 = await Tesseract.recognize(processed, 'eng', {
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+          tessedit_pageseg_mode: '11',
+          preserve_interword_spaces: '0',
+        });
+        const plate2 = extractPlate(result2.data.text);
+        if (plate2) { found = plate2; break; }
+      } catch {}
+    }
+
+    if (found) {
+      setDetected(found);
+      setStatus("Plate detected!");
+    } else {
+      setDetected("NOTFOUND");
+      setStatus("Could not detect — try again or enter manually");
+    }
+    setScanning(false);
+  };
+
+  const useDetected = () => {
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    onDetected(detected);
+    onClose();
+  };
+
+  const useManual = () => {
+    const p = manualText.trim().toUpperCase().replace(/\s/g,'');
+    if (p.length >= 6) {
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+      onDetected(p);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="cam-overlay">
+      <div className="cam-header">
+        <div className="cam-title">📷 Scan Number Plate</div>
+        <button className="cam-close" onClick={onClose}><Ico n="close" s={18} c="white"/></button>
+      </div>
+
+      {camErr ? (
+        <div style={{textAlign:'center',padding:'0 30px',color:'#fff'}}>
+          <div style={{fontSize:48,marginBottom:16}}>🚫</div>
+          <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>Camera Error</div>
+          <div style={{fontSize:14,color:'rgba(255,255,255,0.6)',lineHeight:1.6,marginBottom:20}}>{camErr}</div>
+          <button className="cam-snap" style={{width:'100%'}} onClick={()=>setManualMode(true)}>
+            Enter Number Manually
+          </button>
+        </div>
+      ) : manualMode ? (
+        <div style={{width:'100%',maxWidth:420,padding:'0 20px',textAlign:'center'}}>
+          <div style={{fontSize:18,fontWeight:700,color:'#fff',marginBottom:16}}>Enter Number Plate</div>
+          <input value={manualText} onChange={e=>setManualText(e.target.value.toUpperCase())}
+            placeholder="e.g. MH12AB1234"
+            style={{width:'100%',height:52,background:'rgba(255,255,255,0.1)',border:'1.5px solid rgba(99,102,241,0.5)',
+              borderRadius:12,color:'#fff',fontSize:20,fontWeight:700,letterSpacing:3,textAlign:'center',
+              outline:'none',fontFamily:'Inter,monospace',marginBottom:12}}/>
+          <button className="cam-use" onClick={useManual} style={{marginBottom:10}}>
+            <Ico n="search" s={16} c="white"/> Search Vehicle
+          </button>
+          <button onClick={()=>setManualMode(false)}
+            style={{background:'none',border:'none',color:'rgba(255,255,255,0.5)',cursor:'pointer',fontSize:13,fontFamily:'inherit'}}>
+            ← Back to Camera
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="cam-body">
+            <div className="cam-view" style={{aspectRatio:'16/9'}}>
+              <video ref={videoRef} playsInline muted style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              {/* Simple guide overlay */}
+              <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                <div style={{width:'90%',height:'30%',border:'2px solid #6366f1',borderRadius:8,
+                  boxShadow:'0 0 0 1000px rgba(0,0,0,0.35)',position:'relative'}}>
+                  {/* Corner markers */}
+                  {[['top:0,left:0','borderWidth:3px 0 0 3px'],['top:0,right:0','borderWidth:3px 3px 0 0'],
+                    ['bottom:0,left:0','borderWidth:0 0 3px 3px'],['bottom:0,right:0','borderWidth:0 3px 3px 0']
+                  ].map(([pos,bw],i)=>{
+                    const p = Object.fromEntries(pos.split(',').map(x=>x.split(':')));
+                    const b = Object.fromEntries(bw.split(',').map(x=>x.split(':')));
+                    return <div key={i} style={{position:'absolute',width:20,height:20,borderColor:'#fff',borderStyle:'solid',borderRadius:2,...p,...b}}/>;
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Status */}
+            <div style={{textAlign:'center',marginTop:12,fontSize:13,
+              color: scanning ? '#a5b4fc' : detected==='NOTFOUND' ? '#fca5a5' : detected ? '#86efac' : 'rgba(255,255,255,0.6)',
+              fontWeight:scanning?600:400,letterSpacing:0.3}}>
+              {scanning ? <><span style={{animation:'pulse 1s infinite'}}>⏳</span> {status}</> : status}
+            </div>
+          </div>
+
+          <div className="cam-actions">
+            <button className="cam-snap" onClick={capture} disabled={scanning}>
+              {scanning
+                ? <><div className="ocr-spinner" style={{width:18,height:18,borderWidth:2}}/>Scanning...</>
+                : <><Ico n="camera" s={18} c="white"/>Capture & Scan</>}
+            </button>
+          </div>
+
+          {detected && detected !== "NOTFOUND" && (
+            <div style={{width:'100%',maxWidth:420,padding:'0 20px',marginTop:12}}>
+              <div className="cam-result">
+                <div className="cam-result-lbl">✅ Plate Detected</div>
+                <div className="cam-result-num">{detected}</div>
+                <button className="cam-use" onClick={useDetected}>
+                  <Ico n="search" s={16} c="white"/> Search This Vehicle
+                </button>
+              </div>
+            </div>
+          )}
+
+          {detected === "NOTFOUND" && !scanning && (
+            <div style={{width:'100%',maxWidth:420,padding:'0 20px',marginTop:12,display:'flex',gap:10}}>
+              <button onClick={capture} className="cam-snap" style={{flex:1,height:44,fontSize:13}}>
+                <Ico n="refresh" s={15} c="white"/> Retry
+              </button>
+              <button onClick={()=>setManualMode(true)} className="cam-snap"
+                style={{flex:1,height:44,fontSize:13,background:'rgba(99,102,241,0.3)'}}>
+                ✏️ Enter Manually
+              </button>
+            </div>
+          )}
+
+          <div style={{marginTop:14,textAlign:'center'}}>
+            <button onClick={()=>setManualMode(true)}
+              style={{background:'none',border:'none',color:'rgba(255,255,255,0.4)',
+                cursor:'pointer',fontSize:12,fontFamily:'inherit',textDecoration:'underline'}}>
+              Can't scan? Enter manually
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [loggedIn,setLoggedIn] = useState(false);
+  const [showCam,setShowCam] = useState(false);
   const [dark,setDark] = useState(()=>localStorage.getItem('rc_theme')==='dark');
   const [query,setQuery] = useState("");
   const [loading,setLoading] = useState(false);
@@ -438,147 +777,11 @@ function App() {
   const [history,setHistory] = useState(()=>{
     try{return JSON.parse(localStorage.getItem('rc_hist')||'[]');}catch{return [];}
   });
-  const [showCamera,setShowCamera] = useState(false);
-  const [cameraStream,setCameraStream] = useState(null);
-  const [capturing,setCapturing] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const workerRef = useRef(null);
-  const plateWorkerRef = useRef(null);
 
   useEffect(()=>{
     document.body.className = dark?'dark':'';
     localStorage.setItem('rc_theme',dark?'dark':'light');
   },[dark]);
-
-  useEffect(()=>{
-    (async()=>{
-      if(typeof UltraPlate !== 'undefined' && !plateWorkerRef.current){
-        try{
-          const w = await UltraPlate.createWorker({
-            lang: 'eng',
-            logger: m => console.log('[UltraPlate]', m)
-          });
-          plateWorkerRef.current = w;
-          console.log("UltraPlate worker ready");
-        }catch(e){
-          console.error("UltraPlate init error:", e);
-        }
-      }
-      if(typeof Tesseract !== 'undefined' && !workerRef.current){
-        try{
-          workerRef.current = Tesseract.createWorker('eng', 1, {
-            logger: m => console.log('[Tesseract]', m)
-          });
-        }catch(e){}
-      }
-    })();
-    return ()=>{
-      if(plateWorkerRef.current){
-        plateWorkerRef.current.terminate().catch(()=>{});
-      }
-      if(workerRef.current){
-        try{workerRef.current.terminate();}catch(e){}
-      }
-      if(cameraStream){
-        cameraStream.getTracks().forEach(t=>t.stop());
-      }
-    };
-  },[]);
-
-  const openCamera = async()=>{
-    console.log("Opening camera...");
-    try{
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
-      console.log("Camera stream obtained:", stream);
-      setCameraStream(stream);
-      setShowCamera(true);
-      // Attach stream to video element
-      setTimeout(() => {
-        if(videoRef.current && stream){
-          videoRef.current.srcObject = stream;
-          console.log("Video srcObject set");
-        }
-      }, 100);
-    }catch(e){
-      console.error("Camera error:", e);
-      setError("Camera access denied. Please allow camera permission and use HTTPS/localhost.");
-    }
-  };
-
-  const closeCamera = ()=>{
-    console.log("Closing camera");
-    if(cameraStream){
-      cameraStream.getTracks().forEach(t=>t.stop());
-      setCameraStream(null);
-    }
-    if(videoRef.current){
-      videoRef.current.srcObject = null;
-    }
-    setShowCamera(false);
-  };
-
-  const capturePhoto = async()=>{
-    console.log("Capture photo called");
-    if(!videoRef.current || !canvasRef.current || capturing) return;
-    setCapturing(true);
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    console.log("Photo captured, dataUrl length:", dataUrl.length);
-    closeCamera();
-    await recognizePlate(dataUrl);
-    setCapturing(false);
-  };
-
-  const recognizePlate = async(dataUrl)=>{
-    console.log("Recognize plate called");
-    setLoading(true);
-    setError("");
-    try{
-      let plateText = null;
-
-      if(plateWorkerRef.current && plateWorkerRef.current.isReady()){
-        console.log("Using UltraPlate YOLO+OCR engine...");
-        const result = await plateWorkerRef.current.recognize(dataUrl);
-        console.log("UltraPlate result:", result);
-        if(result.plate){
-          plateText = result.plate;
-        }else if(result.text && result.text.length >= 8){
-          const cleaned = result.text.replace(/[^A-Z0-9]/g, '');
-          const m = cleaned.match(/[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}/);
-          if(m) plateText = m[0];
-        }
-      }
-
-      if(!plateText && workerRef.current){
-        console.log("Fallback: using raw Tesseract.js...");
-        await workerRef.current.load();
-        const { data: { text } } = await workerRef.current.recognize(dataUrl);
-        const m = text.match(/[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}/);
-        if(m) plateText = m[0].replace(/[^A-Z0-9]/g, '');
-      }
-
-      if(plateText){
-        console.log("Detected plate:", plateText);
-        setQuery(plateText);
-        await doSearch(plateText);
-      }else{
-        setError("Could not detect a valid license plate. Try again with better lighting and a clear view of the plate.");
-      }
-    }catch(e){
-      console.error("Recognition error:", e);
-      setError("Failed to recognize plate. Please try again.");
-    }finally{
-      setLoading(false);
-    }
-  };
 
   const logout = ()=>{setLoggedIn(false);setData(null);setError("");setQuery("");};
 
@@ -632,8 +835,8 @@ function App() {
             value={query} onChange={e=>setQuery(e.target.value.toUpperCase())}
             onKeyDown={e=>e.key==="Enter"&&doSearch()} disabled={loading}/>
           {query&&<button className="clr-btn" onClick={()=>setQuery("")}><Ico n="close" s={15} c="#94a3b8"/></button>}
-          <button className="tbtn" onClick={openCamera} style={{marginRight:8}} title="Scan Plate">
-            <Ico n="camera" s={18} c="#6366f1"/>
+          <button className="cam-btn" onClick={()=>setShowCam(true)} title="Scan plate with camera">
+            <Ico n="camera" s={17} c="#6366f1"/>
           </button>
           <button className="go-btn" onClick={()=>doSearch()} disabled={loading||!query.trim()}>
             {loading?<div className="spin"/>:<Ico n="search" s={16} c="white"/>}
@@ -667,27 +870,13 @@ function App() {
         </div>
       </div>}
 
-      {showCamera && cameraStream && (
-        <div className="camera-modal" style={{
-          position:'fixed',top:0,left:0,right:0,bottom:0,
-          background:'rgba(0,0,0,0.9)',zIndex:100,
-          display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-          gap:16,padding:20
-        }}>
-          <div style={{color:'#fff',fontSize:14,fontWeight:500}}>Position plate in frame</div>
-          <video ref={videoRef} autoPlay playsInline muted
-            style={{maxWidth:'100%',maxHeight:'70vh',borderRadius:12,boxShadow:'0 8px 32px rgba(0,0,0,0.5)'}}
-          />
-          <div style={{display:'flex',gap:12}}>
-            <button className="tbtn" onClick={closeCamera} style={{width:56,height:56,fontSize:22}}>
-              <Ico n="close" s={22} c="#fff"/>
-            </button>
-            <button className="go-btn" onClick={capturePhoto} disabled={capturing} style={{width:56,height:56,fontSize:22}}>
-              {capturing ? <div className="spin" style={{borderTopColor:'#fff'}}/> : <Ico n="camera" s={22} c="#fff"/>}
-            </button>
-          </div>
-        </div>
+      {showCam && (
+        <CameraScanner
+          onDetected={(plate) => { setQuery(plate); doSearch(plate); }}
+          onClose={() => setShowCam(false)}
+        />
       )}
+
       {!loading&&!error&&<>
         <div className="hero">
           <div className="plate-img">
