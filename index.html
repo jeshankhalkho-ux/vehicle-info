@@ -337,7 +337,7 @@ function normalize(raw, regNo) {
 async function fetchVehicle(number) {
   let res, json;
   try {
-    res = await fetch(`${WORKER}/api/vehicle?rcno=${encodeURIComponent(number)}`, {
+    res = await fetch(`${WORKER}/api/vehicle?rcno=${encodeURIComponent(number)}&secret=${encodeURIComponent(SECRET)}`, {
       signal: AbortSignal.timeout(25000)
     });
     json = await res.json();
