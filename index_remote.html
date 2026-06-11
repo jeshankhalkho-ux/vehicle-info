@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -8,9 +8,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.21.0/dist/tf.min.js"></script>
+  <script src="https://unpkg.com/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="lib/ultraplate.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Inter',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
@@ -238,7 +237,7 @@
     .ocr-loading{text-align:center;padding:16px;color:rgba(255,255,255,0.6);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:10px;}
     .ocr-spinner{width:28px;height:28px;border:3px solid rgba(99,102,241,0.3);border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;}
 
-    /* ── Camera Scanner ── */
+    /* ΓöÇΓöÇ Camera Scanner ΓöÇΓöÇ */
     .cam-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;}
     .cam-header{position:absolute;top:0;left:0;right:0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
     .cam-title{color:#fff;font-size:17px;font-weight:700;}
@@ -278,9 +277,9 @@ const { useState, useEffect, useRef, useCallback } = React;
 const SECRET = "Jishan15";
 const WORKER = "https://vehicle-info.jeshankhalkho.workers.dev";
 const EXAMPLES = [
-  { num: "JH05DS6144", desc: "Try an example SUV", icon: "🚙" },
-  { num: "MH12DE1433", desc: "Try an example Bike", icon: "🏍️" },
-  { num: "DL01AB1234", desc: "Try an example Car", icon: "🚗" },
+  { num: "JH05DS6144", desc: "Try an example SUV", icon: "≡ƒÜÖ" },
+  { num: "MH12DE1433", desc: "Try an example Bike", icon: "≡ƒÅì∩╕Å" },
+  { num: "DL01AB1234", desc: "Try an example Car", icon: "≡ƒÜù" },
 ];
 
 const cl = v => v && !["NA","N/A","NULL","UNDEFINED",""].includes(String(v).trim().toUpperCase()) ? String(v).trim() : null;
@@ -438,7 +437,7 @@ function Result({d,onBack}) {
           <div className="rc-plate-ico"><Ico n="car" s={28} c="white"/></div>
           <div style={{flex:1}}>
             <div className="rc-reg">{d.regNo}</div>
-            {(d.make||d.model)&&<div className="rc-model">{[d.make,d.model].filter(Boolean).join(' · ')}</div>}
+            {(d.make||d.model)&&<div className="rc-model">{[d.make,d.model].filter(Boolean).join(' ┬╖ ')}</div>}
             <div className="rc-badges">
               {d.vehicleClass&&<span className="bdg bdg-blue">{d.vehicleClass}</span>}
               {d.fuelType&&<span className="bdg bdg-amber">{d.fuelType}</span>}
@@ -447,9 +446,9 @@ function Result({d,onBack}) {
           </div>
         </div>
         <div className="rc-stats">
-          <div className="rc-stat"><div className="rc-stat-lbl">Age</div><div className="rc-stat-val">{d.vehicleAge||'—'}</div></div>
-          <div className="rc-stat"><div className="rc-stat-lbl">Engine</div><div className="rc-stat-val">{d.cubicCap||'—'}</div></div>
-          <div className="rc-stat"><div className="rc-stat-lbl">Seats</div><div className="rc-stat-val">{d.seating?d.seating+' seats':'—'}</div></div>
+          <div className="rc-stat"><div className="rc-stat-lbl">Age</div><div className="rc-stat-val">{d.vehicleAge||'ΓÇö'}</div></div>
+          <div className="rc-stat"><div className="rc-stat-lbl">Engine</div><div className="rc-stat-val">{d.cubicCap||'ΓÇö'}</div></div>
+          <div className="rc-stat"><div className="rc-stat-lbl">Seats</div><div className="rc-stat-val">{d.seating?d.seating+' seats':'ΓÇö'}</div></div>
         </div>
         <div style={{height:20}}/>
       </div>
@@ -515,7 +514,7 @@ function Result({d,onBack}) {
   );
 }
 
-// ── Camera Scanner Component ──────────────────────────────────────────────────
+// ΓöÇΓöÇ Camera Scanner Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function CameraScanner({ onDetected, onClose }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -601,53 +600,39 @@ function CameraScanner({ onDetected, onClose }) {
     setDetected(null);
     setStatus("Capturing image...");
 
+    // Capture full frame
     const video = videoRef.current;
     const full = document.createElement('canvas');
     full.width = video.videoWidth || 1280;
     full.height = video.videoHeight || 720;
     full.getContext('2d').drawImage(video, 0, 0);
 
+    // Try OCR with 4 different preprocessing modes
+    const modes = ['raw', 'gray', 'high_contrast', 'invert'];
     let found = null;
 
-    // Try UltraPlate first (YOLO detection + enhanced OCR)
-    const plateWorker = window.plateWorkerRef?.current;
-    if (plateWorker && plateWorker.isReady && plateWorker.isReady()) {
-      setStatus("Running YOLO detection + OCR...");
+    for (let i = 0; i < modes.length && !found; i++) {
+      const mode = modes[i];
+      setStatus(`Analyzing image (attempt ${i+1}/4)...`);
       try {
-        const dUrl = full.toDataURL('image/jpeg', 0.92);
-        const result = await plateWorker.recognize(dUrl);
-        if (result.plate) {
-          found = result.plate;
-        } else if (result.text) {
-          found = extractPlate(result.text);
-        }
-      } catch(e) {
-        console.warn("UltraPlate failed, falling back:", e);
-      }
-    }
+        const processed = preprocessCanvas(full, mode);
+        const result = await Tesseract.recognize(processed, 'eng', {
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+          tessedit_pageseg_mode: '6',
+          preserve_interword_spaces: '0',
+        });
+        const plate = extractPlate(result.data.text);
+        if (plate) { found = plate; break; }
 
-    // Fallback: try Tesseract with multiple preprocessing modes
-    if (!found) {
-      const modes = ['raw', 'gray', 'high_contrast', 'invert'];
-      for (let i = 0; i < modes.length && !found; i++) {
-        setStatus(`Analyzing image (attempt ${i+1}/4)...`);
-        try {
-          const processed = preprocessCanvas(full, modes[i]);
-          const result = await Tesseract.recognize(processed, 'eng', {
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-            tessedit_pageseg_mode: '6',
-            preserve_interword_spaces: '0',
-          });
-          found = extractPlate(result.data.text) || found;
-
-          const result2 = await Tesseract.recognize(processed, 'eng', {
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-            tessedit_pageseg_mode: '11',
-            preserve_interword_spaces: '0',
-          });
-          found = extractPlate(result2.data.text) || found;
-        } catch {}
-      }
+        // Also try PSM 11 (sparse text)
+        const result2 = await Tesseract.recognize(processed, 'eng', {
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+          tessedit_pageseg_mode: '11',
+          preserve_interword_spaces: '0',
+        });
+        const plate2 = extractPlate(result2.data.text);
+        if (plate2) { found = plate2; break; }
+      } catch {}
     }
 
     if (found) {
@@ -655,7 +640,7 @@ function CameraScanner({ onDetected, onClose }) {
       setStatus("Plate detected!");
     } else {
       setDetected("NOTFOUND");
-      setStatus("Could not detect — try again or enter manually");
+      setStatus("Could not detect ΓÇö try again or enter manually");
     }
     setScanning(false);
   };
@@ -678,13 +663,13 @@ function CameraScanner({ onDetected, onClose }) {
   return (
     <div className="cam-overlay">
       <div className="cam-header">
-        <div className="cam-title">📷 Scan Number Plate</div>
+        <div className="cam-title">≡ƒô╖ Scan Number Plate</div>
         <button className="cam-close" onClick={onClose}><Ico n="close" s={18} c="white"/></button>
       </div>
 
       {camErr ? (
         <div style={{textAlign:'center',padding:'0 30px',color:'#fff'}}>
-          <div style={{fontSize:48,marginBottom:16}}>🚫</div>
+          <div style={{fontSize:48,marginBottom:16}}>≡ƒÜ½</div>
           <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>Camera Error</div>
           <div style={{fontSize:14,color:'rgba(255,255,255,0.6)',lineHeight:1.6,marginBottom:20}}>{camErr}</div>
           <button className="cam-snap" style={{width:'100%'}} onClick={()=>setManualMode(true)}>
@@ -704,7 +689,7 @@ function CameraScanner({ onDetected, onClose }) {
           </button>
           <button onClick={()=>setManualMode(false)}
             style={{background:'none',border:'none',color:'rgba(255,255,255,0.5)',cursor:'pointer',fontSize:13,fontFamily:'inherit'}}>
-            ← Back to Camera
+            ΓåÉ Back to Camera
           </button>
         </div>
       ) : (
@@ -732,7 +717,7 @@ function CameraScanner({ onDetected, onClose }) {
             <div style={{textAlign:'center',marginTop:12,fontSize:13,
               color: scanning ? '#a5b4fc' : detected==='NOTFOUND' ? '#fca5a5' : detected ? '#86efac' : 'rgba(255,255,255,0.6)',
               fontWeight:scanning?600:400,letterSpacing:0.3}}>
-              {scanning ? <><span style={{animation:'pulse 1s infinite'}}>⏳</span> {status}</> : status}
+              {scanning ? <><span style={{animation:'pulse 1s infinite'}}>ΓÅ│</span> {status}</> : status}
             </div>
           </div>
 
@@ -747,7 +732,7 @@ function CameraScanner({ onDetected, onClose }) {
           {detected && detected !== "NOTFOUND" && (
             <div style={{width:'100%',maxWidth:420,padding:'0 20px',marginTop:12}}>
               <div className="cam-result">
-                <div className="cam-result-lbl">✅ Plate Detected</div>
+                <div className="cam-result-lbl">Γ£à Plate Detected</div>
                 <div className="cam-result-num">{detected}</div>
                 <button className="cam-use" onClick={useDetected}>
                   <Ico n="search" s={16} c="white"/> Search This Vehicle
@@ -763,7 +748,7 @@ function CameraScanner({ onDetected, onClose }) {
               </button>
               <button onClick={()=>setManualMode(true)} className="cam-snap"
                 style={{flex:1,height:44,fontSize:13,background:'rgba(99,102,241,0.3)'}}>
-                ✏️ Enter Manually
+                Γ£Å∩╕Å Enter Manually
               </button>
             </div>
           )}
@@ -792,31 +777,11 @@ function App() {
   const [history,setHistory] = useState(()=>{
     try{return JSON.parse(localStorage.getItem('rc_hist')||'[]');}catch{return [];}
   });
-  const plateWorkerRef = useRef(null);
 
   useEffect(()=>{
     document.body.className = dark?'dark':'';
     localStorage.setItem('rc_theme',dark?'dark':'light');
   },[dark]);
-
-  useEffect(()=>{
-    (async()=>{
-      if(typeof UltraPlate !== 'undefined' && !plateWorkerRef.current){
-        try{
-          const w = await UltraPlate.createWorker({ lang: 'eng' });
-          plateWorkerRef.current = w;
-          window.plateWorkerRef = plateWorkerRef;
-        }catch(e){
-          console.error("UltraPlate init error:", e);
-        }
-      }
-    })();
-    return ()=>{
-      if(plateWorkerRef.current){
-        plateWorkerRef.current.terminate().catch(()=>{});
-      }
-    };
-  },[]);
 
   const logout = ()=>{setLoggedIn(false);setData(null);setError("");setQuery("");};
 
@@ -848,7 +813,7 @@ function App() {
       <div className="tr">
         <button className="tbtn" onClick={()=>setDark(d=>!d)}
           style={{background:dark?'#1c2128':'#f8faff',border:`1.5px solid ${dark?'#21262d':'#e2e8f0'}`}}>
-          {dark?'☀️':'🌙'}
+          {dark?'ΓÿÇ∩╕Å':'≡ƒîÖ'}
         </button>
         <button className="lbtn" onClick={logout}
           style={{background:dark?'#1c2128':'#f8faff',border:`1.5px solid ${dark?'#21262d':'#e2e8f0'}`}}>
@@ -917,8 +882,8 @@ function App() {
           <div className="plate-img">
             <div className="plate-blue"/>
             <div className="plate-inner">
-              <span className="plate-ind">🇮🇳 IND</span>
-              <span className="plate-num">MH·12·AB</span>
+              <span className="plate-ind">≡ƒç«≡ƒç│ IND</span>
+              <span className="plate-num">MH┬╖12┬╖AB</span>
             </div>
           </div>
           <div className="hero-title">Comprehensive Vehicle Insights</div>
@@ -934,7 +899,7 @@ function App() {
                 <div className="ex-num">{ex.num}</div>
                 <div className="ex-desc">{ex.desc}</div>
               </div>
-              <div style={{marginLeft:'auto',color:'#6366f1',opacity:0.5}}>→</div>
+              <div style={{marginLeft:'auto',color:'#6366f1',opacity:0.5}}>ΓåÆ</div>
             </div>
           ))}
         </div>
@@ -957,7 +922,7 @@ function App() {
                   <div className="recent-num">{h.num}</div>
                   <div className="recent-time">Searched at {h.time}</div>
                 </div>
-                <div style={{marginLeft:'auto',color:'#6366f1',opacity:0.4}}>→</div>
+                <div style={{marginLeft:'auto',color:'#6366f1',opacity:0.4}}>ΓåÆ</div>
               </div>
             ))
           }
